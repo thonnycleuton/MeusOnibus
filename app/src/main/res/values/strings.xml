@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MeusOnibus</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="carregando">carregando...</string>
+    <string name="buscando_localizacao">buscando...</string>
+    <string name="erro_carregar_linhas">Erro ao carregar linhas:</string>
+</resources>
