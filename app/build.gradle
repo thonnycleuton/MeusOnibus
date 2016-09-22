@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24"
 
     defaultConfig {
         applicationId "com.thonnycleuton.meusonibus"
@@ -10,6 +10,7 @@ android {
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -30,6 +31,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:9.2.1'
     compile 'com.google.code.gson:gson:2.5'
     compile 'com.google.firebase:firebase-ads:9.2.1'
+    compile 'com.google.firebase:firebase-messaging:9.0.0'
     compile 'com.google.maps.android:android-maps-utils:0.4.3'
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.synnapps:carouselview:0.0.9'
