@@ -30,7 +30,11 @@ public class InthegraService {
     public static void initInstance(Context context) throws IOException {
         Log.d(TAG, "initInstance Called");
         if (cachedService == null) {
+            FileHandler fileHandler = new FileHandler(context);
             service = new com.equalsp.stransthe.InthegraService("123ece2c0e7642138f19bdcf937a2ff3", "thonnycleuton@gmail.com", "C0ncr3t0.");
+            cachedService = new CachedInthegraService(service, fileHandler);
+            rotaService = new RotaService(cachedService);
+            cachedService.initialize();
         }
     }
 

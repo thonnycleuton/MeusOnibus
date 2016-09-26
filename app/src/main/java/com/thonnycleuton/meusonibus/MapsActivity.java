@@ -1,5 +1,6 @@
 package com.thonnycleuton.meusonibus;
 
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,22 +12,17 @@ import android.widget.Toast;
 import com.equalsp.stransthe.Linha;
 import com.equalsp.stransthe.Parada;
 import com.equalsp.stransthe.Veiculo;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.clustering.ClusterManager;
 import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsync;
 import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsyncResponse;
 import com.thonnycleuton.meusonibus.inthegraAPI.InthegraService;
-import com.thonnycleuton.meusonibus.util.GoogleMaps.ItemParadaClusterizavel;
-import com.thonnycleuton.meusonibus.util.GoogleMaps.ParadaClusterRenderer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +39,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Marker> paradasMarkers;
     private GoogleMap map;
 
+    private Handler UI_HANDLER = new Handler();
+    private Runnable UI_UPDTAE_RUNNABLE = new Runnable() {
+        @Override
+        public void run() {
+            carregarVeiculos();
+            UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, 30000);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -51,6 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        veiculosMarkers = new ArrayList<>();
 
         try {
             InthegraService.initInstance(this);
@@ -58,8 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
 
-        /* Carrega os veículos */
-        // carregarVeiculos();
+        UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, 30000);
     }
 
     /**
@@ -79,18 +84,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 linhas = InthegraService.getLinhas(location);
                 linha = linhas.get(0);
-                veiculos = InthegraService.getVeiculos(linha);
+                carregarVeiculos();
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-            /* Cria novos marcadores de veículos */
-            for (Veiculo v : veiculos) {
-                LatLng pos = new LatLng(v.getLat(), v.getLong());
-                MarkerOptions m = new MarkerOptions()
-                        .position(pos)
-                        .title(v.getHora())
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_bus));
-                veiculosMarkers.add(map.addMarker(m));
             }
         }
     }
@@ -114,7 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         map.addMarker(new MarkerOptions()
                 .title("Teresina")
-                .snippet("The most populous city in Australia.")
+                .snippet("O Inferno aqui na Terra.")
                 .position(teresina));
 
     }
@@ -148,9 +144,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void processFinish(List<Veiculo> result) {
         Log.d(TAG, "ProcessFinish Called");
         veiculos = result;
-        /* Recupera e preenche o TextView de quantidade de veículos */
-        TextView qtdVeiculosTxt = (TextView) findViewById(R.id.qtdVeiculosTxt);
-        qtdVeiculosTxt.setText(String.valueOf(veiculos.size()));
+
+        // qtdVeiculosTxt.setText(String.valueOf(veiculos.size()));
         /* Atualiza o mapa */
         updateMapa();
     }
