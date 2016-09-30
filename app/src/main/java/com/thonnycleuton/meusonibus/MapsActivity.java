@@ -1,12 +1,16 @@
 package com.thonnycleuton.meusonibus;
 
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.equalsp.stransthe.Linha;
@@ -23,6 +27,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsync;
 import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsyncResponse;
 import com.thonnycleuton.meusonibus.inthegraAPI.InthegraService;
+import com.thonnycleuton.meusonibus.inthegraAPI.Util;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,12 +44,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Marker> paradasMarkers;
     private GoogleMap map;
 
+
     private Handler UI_HANDLER = new Handler();
     private Runnable UI_UPDTAE_RUNNABLE = new Runnable() {
         @Override
         public void run() {
             carregarVeiculos();
-            UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, 30000);
+            UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, Util.VEICULOS_REFRESH_TIME);
         }
     };
 
@@ -53,9 +59,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
         veiculosMarkers = new ArrayList<>();
 
         try {
@@ -64,19 +70,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
 
-        UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, 30000);
+        UI_HANDLER.postDelayed(UI_UPDTAE_RUNNABLE, Util.VEICULOS_REFRESH_TIME);
     }
 
     /**
      * Carrega os veículos de maneira assíncrona
      */
     private void carregarVeiculos() {
-        InthegraVeiculosAsync asyncTask =  new InthegraVeiculosAsync(MapsActivity.this);
+        InthegraVeiculosAsync asyncTask = new InthegraVeiculosAsync(MapsActivity.this);
         asyncTask.delegate = this;
         asyncTask.execute(linha);
     }
 
     public void onMapSearch(View view) {
+
         EditText locationSearch = (EditText) findViewById(R.id.editText);
         String location = locationSearch.getText().toString();
 
@@ -105,14 +112,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.d(TAG, "OnMapReady Called");
         map = googleMap;
 
-        LatLng teresina = new LatLng(-5.0851617,-42.8037127);
+        LatLng teresina = Util.TERESINA;
+        //move o foco e a altitude para o ponto do mapa desejado
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(teresina, 12));
 
-        map.addMarker(new MarkerOptions()
-                .title("Teresina")
-                .snippet("O Inferno aqui na Terra.")
-                .position(teresina));
-
+        //permite mostrar botao localizador acima a direita na tela
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            map.setMyLocationEnabled(true);
+        }
     }
 
     /**
@@ -134,9 +141,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng pos = new LatLng(v.getLat(), v.getLong());
             MarkerOptions m = new MarkerOptions()
                     .position(pos)
-                    .title(v.getHora())
+                    .title(v.getCodigoVeiculo())
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_bus));
             veiculosMarkers.add(map.addMarker(m));
+        }
+        if (veiculos.size() > 0){
+            //TODO: calcular media entre as posicoes dos veiculos a fim de centralizar equidistantemente
+            //reposicionando a camera apos update
+            LatLng carPosition = new LatLng(veiculos.get(0).getLat(), veiculos.get(0).getLong());
+            //se mais de um  veiculo é encontrado, o zoom é mais amplo, se nao é mais centralizado
+            float zoom = veiculos.size() == 1 ? 15 : 12;
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(carPosition, zoom));
         }
     }
 
@@ -144,9 +159,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void processFinish(List<Veiculo> result) {
         Log.d(TAG, "ProcessFinish Called");
         veiculos = result;
-
-        // qtdVeiculosTxt.setText(String.valueOf(veiculos.size()));
-        /* Atualiza o mapa */
         updateMapa();
     }
 }

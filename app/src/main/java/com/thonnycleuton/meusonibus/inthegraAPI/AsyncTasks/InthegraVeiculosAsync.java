@@ -18,8 +18,8 @@ import java.util.List;
 
 /**
  * AsyncTask resposnável por carregar as informações de véiculos de uma dada linha.
- *
- * Created by hugo on 17/05/16.
+ /**
+ * Created by thonnycleuton on 19/09/16.
  */
 
 public class InthegraVeiculosAsync extends AsyncTask<Linha, Void, List<Veiculo>> implements DialogInterface.OnCancelListener {
@@ -67,7 +67,7 @@ public class InthegraVeiculosAsync extends AsyncTask<Linha, Void, List<Veiculo>>
             Log.e(TAG, "Não foi possível recuperar os veículos da linha, motivo: " + e.getMessage());
             wasUnsuccessful = true;
         } finally {
-//            dialog.dismiss();
+            dialog.dismiss();
         }
         return veiculos;
     }

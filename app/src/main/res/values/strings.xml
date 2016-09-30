@@ -9,4 +9,5 @@
     <string name="erro_carregar_veiculos">Erro Carregar Veiculos</string>
     <string name="atualizando_mapa">atualizando o mapa...</string>
     <string name="que_onibus_voce_busca">Que onibus voce busca?</string>
+    <string name="Buscar">Search</string>
 </resources>

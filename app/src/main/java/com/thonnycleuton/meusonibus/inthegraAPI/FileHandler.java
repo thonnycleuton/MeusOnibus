@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * FileHandler para ler o arquivo de cache no dispositivo.
- *
- * Created by hugo on 17/05/16.
+ * Created by thonnycleuton on 19/09/16.
  */
 public class FileHandler implements CachedServiceFileHander {
     private final String TAG = "FileHandler";
