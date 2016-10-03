@@ -13,16 +13,16 @@ import com.equalsp.stransthe.Linha;
 import com.equalsp.stransthe.Localizacao;
 import com.equalsp.stransthe.Veiculo;
 import com.equalsp.stransthe.rotas.PontoDeInteresse;
-import com.thonnycleuton.meusonibus.inthegraAPI.InthegraService;
+import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsync;
+import com.thonnycleuton.meusonibus.inthegraAPI.AsyncTasks.InthegraVeiculosAsyncResponse;
 import com.thonnycleuton.meusonibus.inthegraAPI.Util;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
  * Created by thonnycleuton on 01/10/16.
  */
-public class SeguirOnibus extends IntentService{
+public class SeguirOnibus extends IntentService implements InthegraVeiculosAsyncResponse {
 
     private List<Veiculo> veiculos;
     private Veiculo veiculo;
@@ -33,9 +33,15 @@ public class SeguirOnibus extends IntentService{
     private Runnable UI_UPDTAE_RUNNABLE_Notify = new Runnable() {
         @Override
         public void run() {
-            notificar();
+            carregarVeiculos();
         }
     };
+
+    private void carregarVeiculos() {
+        InthegraVeiculosAsync asyncTask = new InthegraVeiculosAsync(SeguirOnibus.this);
+        asyncTask.delegate = this;
+        asyncTask.execute(linha);
+    }
 
     public SeguirOnibus() {
         super("SeguirOnibus");
@@ -46,13 +52,14 @@ public class SeguirOnibus extends IntentService{
 
         Bundle extras = intent.getExtras();
         linha = (Linha) extras.get("linha");
-        meuLocal = new PontoDeInteresse(Util.TERESINA.latitude, Util.TERESINA.longitude);
+        meuLocal = new PontoDeInteresse(Util.IFPI.latitude, Util.IFPI.longitude);
         UI_HANDLER_Notify.postDelayed(UI_UPDTAE_RUNNABLE_Notify, Util.VEICULOS_REFRESH_TIME);
     }
 
     protected void notificar() {
 
         Intent newIntent = new Intent(SeguirOnibus.this, Onibus_detail.class);
+        newIntent.putExtra("linha", linha);
         PendingIntent pendingIntent = PendingIntent.getActivity(SeguirOnibus.this, 0, newIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(SeguirOnibus.this)
@@ -65,5 +72,27 @@ public class SeguirOnibus extends IntentService{
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(0, notification);
+    }
+
+    @Override
+    public void processFinish(List<Veiculo> veiculos) {
+        this.veiculos = veiculos;
+        double menorDistancia = 10000;
+        double distancia;
+        if (veiculos.size() > 0){
+            for (Veiculo v : veiculos) {
+                distancia = v.getDistancia(meuLocal);
+                if (distancia < menorDistancia){
+                    menorDistancia = distancia;
+                }
+            }
+            if (menorDistancia < 500){
+                notificar();
+            }else {
+                UI_HANDLER_Notify.postDelayed(UI_UPDTAE_RUNNABLE_Notify, Util.VEICULOS_REFRESH_TIME);
+            }
+        } else{
+            UI_HANDLER_Notify.postDelayed(UI_UPDTAE_RUNNABLE_Notify, Util.VEICULOS_REFRESH_TIME);
+        }
     }
 }

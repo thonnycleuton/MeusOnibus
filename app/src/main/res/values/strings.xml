@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MeusOnibus</string>
+    <string name="app_name">Meus Onibus</string>
     <string name="title_activity_maps">Map</string>
     <string name="carregando">carregando...</string>
     <string name="buscando_localizacao">buscando...</string>
@@ -13,4 +13,5 @@
     <string name="title_activity_onibus_detail">Onibus_detail</string>
     <string name="new_notification">Onibus Chegou</string>
     <string name="notification_content">Onibus chegou</string>
+    <string name="corre_nego">Corre Negão</string>
 </resources>
