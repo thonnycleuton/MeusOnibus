@@ -1,9 +1,7 @@
 package com.thonnycleuton.meusonibus;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -41,7 +39,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Veiculo> veiculos;
     private List<Linha> linhas;
     private List<Marker> veiculosMarkers;
-    private List<Marker> paradasMarkers;
     private GoogleMap map;
 
 
@@ -74,7 +71,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     /**
-     * Carrega os veículos de maneira assíncrona
+     * Busca veiculos da linha buscada
      */
     private void carregarVeiculos() {
         InthegraVeiculosAsync asyncTask = new InthegraVeiculosAsync(MapsActivity.this);
@@ -120,12 +117,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
         }
+
+        MarkerOptions m = new MarkerOptions()
+                .position(teresina)
+                .title("Seguir onibus")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.paradapointer));
+        veiculosMarkers.add(map.addMarker(m));
     }
 
     /**
      * Atualiza o mapa com a posição atual dos veículos
      */
     private void updateMapa() {
+
         Log.d(TAG, "updateMapa Called");
         /* Exibe a mensagem na tela */
         Toast.makeText(MapsActivity.this, this.getString(R.string.atualizando_mapa), Toast.LENGTH_SHORT).show();
@@ -144,7 +148,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .title(v.getCodigoVeiculo())
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.green_bus));
             veiculosMarkers.add(map.addMarker(m));
+
+            map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Intent intent = new Intent(MapsActivity.this, SeguirOnibus.class);
+                    intent.putExtra("linha", linha);
+                    startService(intent);
+                    return true;
+                }
+            });
         }
+
+        /* Teste sem internet
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Intent intent = new Intent(MapsActivity.this, SeguirOnibus.class);
+                intent.putExtra("linha", linha);
+                startService(intent);
+                return true;
+            }
+        }); */
         if (veiculos.size() > 0){
             //TODO: calcular media entre as posicoes dos veiculos a fim de centralizar equidistantemente
             //reposicionando a camera apos update

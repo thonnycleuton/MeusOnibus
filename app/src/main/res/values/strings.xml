@@ -10,4 +10,7 @@
     <string name="atualizando_mapa">atualizando o mapa...</string>
     <string name="que_onibus_voce_busca">Que onibus voce busca?</string>
     <string name="Buscar">Search</string>
+    <string name="title_activity_onibus_detail">Onibus_detail</string>
+    <string name="new_notification">Onibus Chegou</string>
+    <string name="notification_content">Onibus chegou</string>
 </resources>
